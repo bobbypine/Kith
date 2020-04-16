@@ -1,55 +1,42 @@
-import requests
-from bs4 import BeautifulSoup
+import webbrowser
 import json
+import requests
+import time
+import urllib3
+
+urllib3.disable_warnings()
 
 
-def keysearch(key):
-    headers = {'User-Agent':'Mozilla/5.0 (Windows NT 10.0; Win64; x64)  AppleWebKit/537.36 (KHTML, like Gecko) Chrome/62.0.3202.94 Safari/537.36'}
-
-    url = 'https://kith.com/sitemap_products_1.xml?from=135297231&to=2057600008261'
-
-    r = requests.get(url=url, headers=headers)
-
-    soup = BeautifulSoup(r.text, 'html.parser')
-
+def keysearch(keyword):
+    starttime = time.time()
+    url = 'https://www.kith.com/products.json'
+    response = requests.get(url=url, verify=False)
+    data = json.loads(response.content.decode('utf-8'))
     mylist = []
     global mylists
     mylists = mylist
-    for items in soup.find_all("url"):
-        item = items.find("image:title")
-        if item is not None:
-            title = item.text
-            url = items.find("loc").text
-            time = items.find("lastmod").text
-            if keyword.lower() in title.lower():
-                print(title, url)
-                mylist.append(title)
-                purl = ('{}.json'.format(url))
-                r2 = requests.get(url=purl, headers=headers)
-                data = json.loads(r2.content)
-                for proditems in data['product']['variants']:
-                    variant = proditems['id']
-                    size = proditems['title']
-                    link = 'https://www.kith.com/cart/{}:1'.format(variant)
-                    print('     ',size,'ATC:',link)
-                print()
-            else:
-                if keyword.lower() in url.lower():
-                    mylist.append(url)
-                    print('Keyword Not in Item Name, but Found {}'.format(url))
-        if item is None:
-            url2 = items.find("loc").text
-            if keyword.lower() in url2.lower():
-                    mylist.append(url2)
-                    print('Keyword Not in Item Name, but Found {}'.format(url2))
+    for items in data['products']:
+        if keyword in items['title'].lower():
+            mylist.append(items['title'])
+            print(items['title'], 'https://kith.com/products/{}'.format(items['handle']))
+            webbrowser.open('https://kith.com/products/{}'.format(items['handle']))
+            print('Product Found at {} and Opened in {:.2f} Seconds'.format(time.strftime("%I:%M:%S"),time.time() - starttime))
+            print()
 
+keyword = input('Enter Keyword(s), Hit Enter When Ready:').lower()
+keylist = keyword.split(",")
+print()
 
-while True:
-    keyword = input('Enter Keyword, Hit Enter When Ready:').lower()
-    if keyword == "":
-        print('Program Ended')
-        break
+for keyword in keylist:
     keysearch(keyword)
-    if len(mylists) == 0:
-        print('No Results for {}'.format(keyword).title())
-        print()
+
+for _ in range(240):
+    try:
+        if not mylists:
+            print('Product Not Found, Will Look Again...')
+            time.sleep(0.25)
+            keysearch(keyword)
+    except Exception as e:
+        print('{}: or Webstore Closed'.format(e))
+print('Program Ended')
+print('------------------------------------------------------------------------------------------------------------')
