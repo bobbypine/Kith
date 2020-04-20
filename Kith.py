@@ -46,7 +46,7 @@ for _ in range(240):
         if not mylists:
             print('Product Not Found, Will Look Again...')
             time.sleep(0.25)
-            keysearch(keyword)
+            keysearch(keyword, size)
     except Exception as e:
         print('{}: or Webstore Closed'.format(e))
 print('Program Ended')
