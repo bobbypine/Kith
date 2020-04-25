@@ -23,25 +23,28 @@ def keysearch(keyword, size):
             #webbrowser.open('https://kith.com/products/{}'.format(items['handle']))
             print('Product Found at {} in {:.2f} Seconds'.format(time.strftime("%I:%M:%S"),time.time() - starttime))
             print('Adding to cart...')
+            print('Taking you to queue...')
             url2 = '{}.json'.format(itemurl)
             response2 = requests.get(url=url2, verify=False)
             data2 = json.loads(response2.content.decode('utf-8'))
             for sizes in data2['product']['variants']:
                 if sizes['title'] == size:
                     carturl = 'https://kith.com/cart/{}:1'.format(sizes['id'])
+                    print('Cart Link: {}'.format(carturl))
                     webbrowser.open(carturl)
-
 
 
 keyword = input('Enter Keyword(s): ').lower()
 keylist = keyword.split(",")
-size = input('Enter Size, Hit Enter When Ready: ').upper()
+size = input('Enter Size, Hit Enter When Ready: ')
+if size.isnumeric() is False:
+    size = size.upper()
 print()
 
 for keyword in keylist:
     keysearch(keyword, size)
 
-for _ in range(240):
+for _ in range(600):
     try:
         if not mylists:
             print('Product Not Found, Will Look Again...')
